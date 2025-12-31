@@ -1,122 +1,261 @@
-# Conductor Extension for Gemini CLI
+# Conductor Plugin for Claude Code
 
 **Measure twice, code once.**
 
-Conductor is a Gemini CLI extension that enables **Context-Driven Development**. It turns the Gemini CLI into a proactive project manager that follows a strict protocol to specify, plan, and implement software features and bug fixes.
+> **🔄 Fork of** [gemini-cli-extensions/conductor](https://github.com/gemini-cli-extensions/conductor) • **Converted to** [Claude Code](https://github.com/anthropics/claude-code) plugin architecture
 
-Instead of just writing code, Conductor ensures a consistent, high-quality lifecycle for every task: **Context -> Spec & Plan -> Implement**.
+Conductor is a **Claude Code plugin** that enables **Context-Driven Development**. It transforms Claude Code into a proactive project manager that follows a strict protocol to specify, plan, and implement software features and bug fixes.
 
-The philosophy behind Conductor is simple: control your code. By treating context as a managed artifact alongside your code, you transform your repository into a single source of truth that drives every agent interaction with deep, persistent project awareness.
+---
+
+## 🎯 What is Conductor?
+
+Conductor ensures a consistent, high-quality lifecycle for every task: **Context → Spec & Plan → Implement**.
+
+The philosophy is simple: **control your code**. By treating context as a managed artifact alongside your code, you transform your repository into a single source of truth that drives every AI interaction with deep, persistent project awareness.
+
+---
+
+## 🔄 From Gemini CLI to Claude Code
+
+This project is a **fork and conversion** of the original [Conductor extension for Gemini CLI](https://github.com/gemini-cli-extensions/conductor). It has been completely re-architected to use Claude Code's plugin system with Skills and Commands.
+
+### What Changed in the Conversion
+
+| Aspect | Gemini CLI (Original) | Claude Code (This Fork) |
+|--------|----------------------|-------------------------|
+| **Architecture** | TOML-based prompt commands | Skills (auto-invoked) + Commands (user-invoked) |
+| **Format** | `.toml` files | `.md` files with YAML frontmatter |
+| **Invocation** | `/conductor:command` | `/conductor:command` (same syntax) |
+| **Context Loading** | Manual prompts | Auto-invoked Skills |
+| **Tool Permissions** | Not specified | `allowed-tools` in frontmatter |
+| **Documentation** | GEMINI.md | CLAUDE.md + inline docs |
+| **Standards Compliance** | Gemini CLI spec | [Anthropic Skills](https://github.com/anthropics/skills) & [Plugins](https://github.com/anthropics/claude-code) |
+
+### Key Architectural Changes
+
+1. **Skills System** (New)
+   - `conductor-context`: Auto-loads project context when needed
+   - `conductor-workflow`: Enforces TDD task lifecycle during implementation
+   - `conductor-docs`: Fetches up-to-date docs via Context7 MCP
+
+2. **Commands Enhancement**
+   - Added `allowed-tools` frontmatter for security
+   - Added `argument-hint` for better UX
+   - Markdown-based instead of TOML
+
+3. **Removed Features**
+   - Gemini-specific configuration (`gemini-extension.json`)
+   - Product guidelines (simplified to focus on essentials)
+
+4. **Preserved Features**
+   - All core workflow functionality
+   - Track-based development
+   - Git-aware revert
+   - Status tracking
+
+---
 
 ## Features
 
-- **Plan before you build**: Create specs and plans that guide the agent for new and existing codebases.
-- **Maintain context**: Ensure AI follows style guides, tech stack choices, and product goals.
-- **Iterate safely**: Review plans before code is written, keeping you firmly in the loop.
-- **Work as a team**: Set project-level context for your product, tech stack, and workflow preferences that become a shared foundation for your team.
-- **Build on existing projects**: Intelligent initialization for both new (Greenfield) and existing (Brownfield) projects.
-- **Smart revert**: A git-aware revert command that understands logical units of work (tracks, phases, tasks) rather than just commit hashes.
+- **Plan before you build**: Create specs and plans that guide Claude for new and existing codebases
+- **Maintain context**: Ensure AI follows style guides, tech stack choices, and product goals
+- **Iterate safely**: Review plans before code is written, keeping you firmly in the loop
+- **Work as a team**: Set project-level context that becomes a shared foundation
+- **Build on existing projects**: Intelligent initialization for both new (Greenfield) and existing (Brownfield) projects
+- **Smart revert**: Git-aware revert that understands logical units of work (tracks, phases, tasks)
+- **Token-efficient**: Skills load only when needed, keeping context minimal
+
+---
 
 ## Installation
 
-Install the Conductor extension by running the following command from your terminal:
+### Prerequisites
+
+- [Claude Code](https://github.com/anthropics/claude-code) installed
+- [Context7 MCP server](https://github.com/modelcontextprotocol/servers) configured (optional, for `conductor-docs` skill)
+
+### Install the Plugin
+
+1. **Clone or copy this plugin to your Claude plugins directory:**
 
 ```bash
-gemini extensions install https://github.com/gemini-cli-extensions/conductor --auto-update
+# Navigate to your Claude plugins directory
+cd ~/.claude/plugins
+
+# Clone the repository
+git clone https://github.com/nsafouane/ClaudeCodeConductor.git conductor
+
+# OR copy from local path
+cp -r /path/to/ClaudeCodeConductor ~/.claude/plugins/conductor
 ```
 
-The `--auto-update` is optional: if specified, it will update to new versions as they are released.
+2. **Restart Claude Code** to load the plugin.
+
+---
 
 ## Usage
 
-Conductor is designed to manage the entire lifecycle of your development tasks.
-
-**Note on Token Consumption:** Conductor's context-driven approach involves reading and analyzing your project's context, specifications, and plans. This can lead to increased token consumption, especially in larger projects or during extensive planning and implementation phases. You can check the token consumption in the current session by running `/stats model`.
-
 ### 1. Set Up the Project (Run Once)
-
-When you run `/conductor:setup`, Conductor helps you define the core components of your project context. This context is then used for building new components or features by you or anyone on your team.
-
-- **Product**: Define project context (e.g. users, product goals, high-level features).
-- **Product guidelines**: Define standards (e.g. prose style, brand messaging, visual identity).
-- **Tech stack**: Configure technical preferences (e.g. language, database, frameworks).
-- **Workflow**: Set team preferences (e.g. TDD, commit strategy). Uses [workflow.md](templates/workflow.md) as a customizable template.
-
-**Generated Artifacts:**
-- `conductor/product.md`
-- `conductor/product-guidelines.md`
-- `conductor/tech-stack.md`
-- `conductor/workflow.md`
-- `conductor/code_styleguides/`
-- `conductor/tracks.md`
 
 ```bash
 /conductor:setup
 ```
 
-### 2. Start a New Track (Feature or Bug)
-
-When you’re ready to take on a new feature or bug fix, run `/conductor:newTrack`. This initializes a **track** — a high-level unit of work. Conductor helps you generate two critical artifacts:
-
-- **Specs**: The detailed requirements for the specific job. What are we building and why?
-- **Plan**: An actionable to-do list containing phases, tasks, and sub-tasks.
+Conductor will guide you through:
+- Detecting if your project is new or existing
+- Defining your product, tech stack, and workflow
+- Selecting code style guides
+- Creating your first track
 
 **Generated Artifacts:**
-- `conductor/tracks/<track_id>/spec.md`
-- `conductor/tracks/<track_id>/plan.md`
-- `conductor/tracks/<track_id>/metadata.json`
+- `conductor/product.md` - Project context and goals
+- `conductor/tech-stack.md` - Technology stack definition
+- `conductor/workflow.md` - Development workflow preferences
+- `conductor/styleguides/` - Code style guides
+- `conductor/tracks.md` - Registry of all tracks
+
+### 2. Create a New Track
 
 ```bash
-/conductor:newTrack
-# OR with a description
-/conductor:newTrack "Add a dark mode toggle to the settings page"
+/conductor:track "Add user authentication"
 ```
 
+This creates:
+- **Spec** (`spec.md`): Detailed requirements
+- **Plan** (`plan.md`): Implementation plan with phases and tasks
+
 ### 3. Implement the Track
-
-Once you approve the plan, run `/conductor:implement`. Your coding agent then works through the `plan.md` file, checking off tasks as it completes them.
-
-**Updated Artifacts:**
-- `conductor/tracks.md` (Status updates)
-- `conductor/tracks/<track_id>/plan.md` (Status updates)
-- Project context files (Synchronized on completion)
 
 ```bash
 /conductor:implement
 ```
 
-Conductor will:
-1.  Select the next pending task.
-2.  Follow the defined workflow (e.g., TDD: Write Test -> Fail -> Implement -> Pass).
-3.  Update the status in the plan as it progresses.
-4.  **Verify Progress**: Guide you through a manual verification step at the end of each phase to ensure everything works as expected.
+Claude will:
+- Execute tasks one-by-one following TDD workflow
+- Commit changes with track metadata
+- Update the plan as it progresses
+- Ask for verification between phases
 
-During implementation, you can also:
+### 4. Check Status
 
-- **Check status**: Get a high-level overview of your project's progress.
-  ```bash
-  /conductor:status
-  ```
-- **Revert work**: Undo a feature or a specific task if needed.
-  ```bash
-  /conductor:revert
-  ```
+```bash
+/conductor:status
+```
+
+See progress on all tracks and current tasks.
+
+### 5. Revert if Needed
+
+```bash
+/conductor:revert
+```
+
+Safely revert tracks, phases, or tasks with git awareness.
+
+---
 
 ## Commands Reference
 
 | Command | Description | Artifacts |
-| :--- | :--- | :--- |
-| `/conductor:setup` | Scaffolds the project and sets up the Conductor environment. Run this once per project. | `conductor/product.md`<br>`conductor/product-guidelines.md`<br>`conductor/tech-stack.md`<br>`conductor/workflow.md`<br>`conductor/tracks.md` |
-| `/conductor:newTrack` | Starts a new feature or bug track. Generates `spec.md` and `plan.md`. | `conductor/tracks/<id>/spec.md`<br>`conductor/tracks/<id>/plan.md`<br>`conductor/tracks.md` |
-| `/conductor:implement` | Executes the tasks defined in the current track's plan. | `conductor/tracks.md`<br>`conductor/tracks/<id>/plan.md` |
-| `/conductor:status` | Displays the current progress of the tracks file and active tracks. | Reads `conductor/tracks.md` |
-| `/conductor:revert` | Reverts a track, phase, or task by analyzing git history. | Reverts git history |
+|:---|:---|:---|
+| `/conductor:setup` | Initialize Conductor in your project | `conductor/` structure |
+| `/conductor:track` | Create a new feature or bug fix track | `conductor/tracks/<id>/spec.md`<br>`conductor/tracks/<id>/plan.md` |
+| `/conductor:implement` | Execute the implementation plan | `conductor/tracks/<id>/plan.md` |
+| `/conductor:status` | Show project progress | Reads `conductor/tracks.md` |
+| `/conductor:revert` | Revert work using git | Reverts git history |
+
+---
+
+## Architecture
+
+### Skills (Auto-Invoked)
+
+| Skill | Purpose |
+|:---|:---|
+| `conductor-context` | Loads project context when needed |
+| `conductor-workflow` | Enforces TDD task lifecycle |
+| `conductor-docs` | Fetches up-to-date documentation via Context7 MCP |
+
+### Workflow
+
+Conductor follows a strict development workflow:
+
+1. **Pre-work**: Check git, find next task, mark in-progress
+2. **TDD Cycle** (if enabled):
+   - Write test first (should fail)
+   - Implement minimal code
+   - Verify test passes
+   - Refactor if needed
+3. **Commit**: Commit changes with track metadata
+4. **Update Plan**: Mark task complete with commit SHA
+5. **Verify**: Run full test suite at phase end
+6. **Checkpoint**: Get user approval between phases
+
+---
+
+## Generated Project Structure
+
+```
+your-project/
+├── conductor/
+│   ├── product.md              # Project context
+│   ├── tech-stack.md           # Technology stack
+│   ├── workflow.md             # Development workflow
+│   ├── styleguides/            # Code style guides
+│   ├── tracks.md               # Track registry
+│   └── tracks/
+│       └── track_20241230_001/
+│           ├── spec.md         # Requirements
+│           ├── plan.md         # Implementation plan
+│           └── metadata.json   # Track metadata
+```
+
+---
+
+## Migration from Gemini CLI
+
+If you're migrating from the original Gemini CLI extension:
+
+1. **Your existing `conductor/` directory is 100% compatible** - no changes needed!
+2. **Command syntax is identical** - same `/conductor:setup`, `/conductor:track`, etc.
+3. **Enhanced features**:
+   - Skills auto-load context (no manual prompting needed)
+   - Better tool permission control
+   - Improved documentation integration
+
+---
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+When contributing, keep in mind:
+- This follows Claude Code's official plugin structure
+- Skills use the [Anthropic Skills format](https://github.com/anthropics/skills)
+- Maintain compatibility with the original Conductor philosophy
+
+---
+
+## Acknowledgments
+
+- **Original Project**: [gemini-cli-extensions/conductor](https://github.com/gemini-cli-extensions/conductor)
+- **Claude Code**: [anthropics/claude-code](https://github.com/anthropics/claude-code)
+- **Agent Skills**: [anthropics/skills](https://github.com/anthropics/skills)
+
+This fork maintains the same **Apache License 2.0** as the original project.
+
+---
+
+## License
+
+[Apache License 2.0](LICENSE) - Same as the original Conductor extension
+
+---
 
 ## Resources
 
-- [Gemini CLI extensions](https://geminicli.com/docs/extensions/): Documentation about using extensions in Gemini CLI
-- [GitHub issues](https://github.com/gemini-cli-extensions/conductor/issues): Report bugs or request features
-
-## Legal
-
-- License: [Apache License 2.0](LICENSE)
+- [Official Claude Code Repo](https://github.com/anthropics/claude-code)
+- [Official Skills Repo](https://github.com/anthropics/skills)
+- [Original Conductor for Gemini CLI](https://github.com/gemini-cli-extensions/conductor)
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)

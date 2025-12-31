@@ -1,0 +1,8 @@
+{
+  "name": "conductor",
+  "version": "1.0.0",
+  "description": "Context-driven development workflow for systematic feature implementation",
+  "author": "nsafouane",
+  "repository": "https://github.com/nsafouane/ClaudeCodeConductor",
+  "original": "https://github.com/gemini-cli-extensions/conductor"
+}
