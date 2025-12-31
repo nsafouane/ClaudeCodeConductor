@@ -75,22 +75,206 @@ This project is a **fork and conversion** of the original [Conductor extension f
 - [Claude Code](https://github.com/anthropics/claude-code) installed
 - [Context7 MCP server](https://github.com/modelcontextprotocol/servers) configured (optional, for `conductor-docs` skill)
 
-### Install the Plugin
+### Quick Installation (Recommended)
 
-1. **Clone or copy this plugin to your Claude plugins directory:**
+The easiest way to install Conductor is directly from the GitHub repository:
 
 ```bash
-# Navigate to your Claude plugins directory
-cd ~/.claude/plugins
+# Install directly from GitHub
+/plugin install https://github.com/nsafouane/ClaudeCodeConductor.git
 
-# Clone the repository
-git clone https://github.com/nsafouane/ClaudeCodeConductor.git conductor
-
-# OR copy from local path
-cp -r /path/to/ClaudeCodeConductor ~/.claude/plugins/conductor
+# Restart Claude Code to load the plugin
 ```
 
-2. **Restart Claude Code** to load the plugin.
+### Alternative Installation Methods
+
+#### Method 1: Manual Skills Installation
+
+For simple plugins that only need skills:
+
+#### Method 2: Manual Skills Installation
+
+For simple plugins that only need skills:
+
+```bash
+# Create skills directory
+mkdir -p .claude/skills/conductor
+
+# Download SKILL.md files directly
+curl -o .claude/skills/conductor/context/SKILL.md https://raw.githubusercontent.com/nsafouane/ClaudeCodeConductor/main/skills/conductor-context/SKILL.md
+curl -o .claude/skills/conductor/docs/SKILL.md https://raw.githubusercontent.com/nsafouane/ClaudeCodeConductor/main/skills/conductor-docs/SKILL.md
+curl -o .claude/skills/conductor/workflow/SKILL.md https://raw.githubusercontent.com/nsafouane/ClaudeCodeConductor/main/skills/conductor-workflow/SKILL.md
+```
+
+#### Method 3: Project-Level Configuration
+
+Create `.claude/settings.json` for automatic plugin installation when team members open the project:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "anthropics": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-code"
+      }
+    },
+    "community": {
+      "source": {
+        "source": "github",
+        "repo": "jeremylongshore/claude-code-plugins-plus"
+      }
+    }
+  },
+  "plugins": {
+    "auto_install": [
+      "conductor"
+    ]
+  }
+}
+```
+
+When team members trust the repository folder, Claude Code will automatically install the plugin.
+
+### Publishing to a Marketplace
+
+To enable the `/plugin install conductor` command (without specifying the full Git URL), you need to publish this plugin to a marketplace.
+
+#### Option 1: Submit to Existing Marketplace
+
+1. Fork or create a pull request to an existing marketplace:
+   - [jeremylongshore/claude-code-plugins-plus](https://github.com/jeremylongshore/claude-code-plugins-plus) - Community marketplace with 185+ plugins
+   - [EveryInc/every-marketplace](https://github.com/EveryInc/every-marketplace) - DevOps & productivity focus
+   - [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) - Official Anthropic marketplace (requires approval)
+
+2. Add this plugin to the marketplace's `.claude-plugin/marketplace.json`:
+   ```json
+   {
+     "name": "conductor",
+     "source": "./plugins/conductor",
+     "description": "Context-driven development workflow for systematic feature implementation"
+   }
+   ```
+
+3. Submit a pull request to the marketplace repository
+
+#### Option 2: Create Your Own Marketplace
+
+1. Create a new GitHub repository for your marketplace (e.g., `your-org/claude-plugins`)
+2. Create `.claude-plugin/marketplace.json`:
+   ```json
+   {
+     "name": "your-marketplace",
+     "owner": {
+       "name": "Your Team",
+       "email": "team@example.com"
+     },
+     "plugins": [
+       {
+         "name": "conductor",
+         "source": "./plugins/conductor",
+         "description": "Context-driven development workflow for systematic feature implementation"
+       }
+     ]
+   }
+   ```
+3. Commit and push to GitHub
+
+4. Share marketplace with your team:
+   ```bash
+   /plugin marketplace add your-org/claude-plugins
+   /plugin install conductor@your-marketplace
+   ```
+
+For complete details on creating marketplaces, see the [official marketplace documentation](https://code.claude.com/docs/en/plugins).
+
+### Verify Installation
+
+After installation, verify the plugin is loaded by checking available commands:
+
+```bash
+/help
+```
+
+You should see `/conductor:setup`, `/conductor:track`, `/conductor:implement`, `/conductor:status`, and `/conductor:revert` in the list.
+
+### Plugin Management Commands
+
+```bash
+# List installed plugins
+/plugin list
+
+# Show plugin details
+/plugin info conductor
+
+# Update all plugins
+/plugin update all
+
+# Remove a plugin
+/plugin remove conductor
+
+# List available marketplaces
+/plugin marketplace list
+```
+
+### Troubleshooting
+
+#### Plugin not appearing after installation
+
+If plugin doesn't appear in `/help` after installation:
+
+1. **Restart Claude Code** - Plugins are loaded on startup
+2. **Check plugin installation**:
+   ```bash
+   /plugin list
+   ```
+3. **Verify marketplace is added**:
+   ```bash
+   /plugin marketplace list
+   ```
+4. **Check for errors** - Review Claude Code startup logs for plugin loading errors
+
+#### Installation fails with "plugin not found"
+
+If you get a "plugin not found" error:
+
+1. **Verify marketplace name** - Use correct marketplace slug:
+   ```bash
+   /plugin marketplace list
+   ```
+2. **Check plugin name** - Use exact plugin name from marketplace:
+   ```bash
+   /plugin marketplace show <marketplace-name>
+   ```
+3. **Try direct installation**:
+   ```bash
+   /plugin install https://github.com/nsafouane/ClaudeCodeConductor.git
+   ```
+
+#### Commands not working
+
+If Conductor commands don't work:
+
+1. **Verify plugin is loaded**:
+   ```bash
+   /plugin list
+   ```
+2. **Check command syntax** - Use `/conductor:command` format
+3. **Restart Claude Code** after installation
+
+#### MCP server issues (conductor-docs skill)
+
+If `conductor-docs` skill has issues:
+
+1. **Verify Context7 MCP is installed**:
+   ```bash
+   /mcp list
+   ```
+2. **Install Context7 MCP server**:
+   ```bash
+   claude mcp add context7 --scope user -- npx -y @upstash/context7-mcp
+   ```
+3. **Restart Claude Code** to load MCP servers
 
 ---
 
